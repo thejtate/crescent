@@ -1,0 +1,212 @@
+.page-careers {
+
+  .form {
+    margin-bottom: 50px;
+  }
+
+  .block-system {
+
+    .title {
+
+      &:before {
+        bottom: -198px;
+      }
+
+      &:after {
+        bottom: -198px;
+      }
+    }
+
+    h5 {
+      margin: 60px 0 0 0;
+      padding-bottom: 40px;
+      font-size: 36px;
+    }
+
+    .text-inner {
+      text-align: center;
+    }
+
+    .cols-two {
+      display: table;
+      width: 100%;
+
+      .col {
+        width: 50%;
+        text-align: center;
+        padding: 75px 0 60px 0;
+        color: #7d7d7d;
+        display: table-cell;
+        font-family: $museo-300;
+        border-left: 1px solid #cccccc;
+
+        .btn-wrapp {
+          padding-top: 40px;
+        }
+
+        h4 {
+          color: #7d7d7d;
+        }
+
+        &:first-child {
+          border-left: none;
+        }
+
+        h4 {
+          margin-bottom: 0;
+        }
+      }
+    }
+
+    .cols-three {
+
+      .col {
+        width: 33.3333%;
+        text-align: center;
+        padding: 75px 0 60px 0;
+        color: #7d7d7d;
+        display: table-cell;
+        font-family: $museo-300;
+        border-left: 1px solid #cccccc;
+
+        .btn-wrapp {
+          padding-top: 40px;
+        }
+
+        h4 {
+          color: #7d7d7d;
+        }
+
+        &:first-child {
+          border-left: none;
+        }
+
+        h4 {
+          margin-bottom: 0;
+        }
+      }
+    }
+
+    .quicktabs-wrapper {
+
+      .quicktabs-tabs {
+        padding: 60px 90px 0 90px;
+
+        a {
+          position: relative;
+        }
+
+        .quicktabs-tabs-item-1 {
+
+          a {
+
+            &:after {
+              @include pseudo-block($top: -85px, $left: 50%);
+              @include oneline-sprite-box($icons, careers-tab-1);
+              margin-left: -33px;
+            }
+          }
+
+          &.active a:after {
+            @include oneline-sprite-box($icons, careers-tab-1-a);
+          }
+
+        }
+
+        .quicktabs-tabs-item-2 {
+
+          a {
+            &:after {
+              @include pseudo-block($top: -85px, $left: 50%);
+              @include oneline-sprite-box($icons, careers-tab-2);
+              margin-left: -33px;
+            }
+          }
+
+          &.active a:after {
+            @include oneline-sprite-box($icons, careers-tab-2-a);
+          }
+        }
+
+        .quicktabs-tabs-item-3 {
+
+          a {
+            &:after {
+              @include pseudo-block($top: -85px, $left: 50%);
+              @include oneline-sprite-box($icons, careers-tab-3);
+              margin-left: -33px;
+            }
+          }
+
+          &.active a:after {
+            @include oneline-sprite-box($icons, careers-tab-3-a);
+          }
+        }
+
+      }
+    }
+  }
+
+  .form-item {
+    margin: 10px 0;
+  }
+
+  .form-wrapper {
+    padding: 0 180px;
+
+    .form-wrapper {
+      padding: 0;
+
+      legend {
+        font-size: 20px;
+        padding-top: 40px;
+      }
+    }
+
+    .form-type-radio {
+      display: inline-block;
+      margin-right: 15px;
+    }
+
+    .three-elements {
+      .form-type-select {
+        width: 183px;
+      }
+    }
+
+    .form-type-select {
+      width: 275px;
+      display: inline-block;
+      margin-left: 2px;
+      vertical-align: middle;
+    }
+
+    .webform-calendar {
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    .webform-component-select {
+      width: 300px;
+      display: inline-block;
+      margin-left: 2px;
+    }
+
+    .webform-layout-box .webform-component-textfield, .webform-layout-box .webform-component-email, .webform-layout-box .webform-component-masked-textfield,.webform-layout-box .webform-component-number {
+      margin-left: 18px;
+
+      &:first-child {
+        margin-left: 0;
+      }
+    }
+
+    .webform-component-textfield, .webform-component-email, .webform-component-masked-textfield, .webform-component-number {
+      width: 300px;
+      display: inline-block;
+    }
+  }
+
+  .captcha {
+    padding: 0 158px;
+  }
+}

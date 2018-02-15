@@ -1,0 +1,36 @@
+.b-links {
+
+  & > ul {
+    margin: 0;
+    padding: 0;
+
+    li {
+      border-bottom: 2px solid #a7a7a7;
+      list-style: none;
+      font-size: 24px;
+      position: relative;
+      font-family: $museo-300;
+
+      a {
+        min-height: 186px;
+        @include clearfix();
+        display: block;
+        color: #7d7d7d;
+        @include transition(color .3s);
+        text-decoration: none;
+
+        &:before {
+          @include transition(opacity .3s, left .3s);
+          margin-top: -27px;
+          border-left: 48px solid #f6a704;
+          border-top: 27px solid transparent;
+          border-bottom: 27px solid transparent;
+        }
+      }
+
+      p {
+        margin: 0;
+      }
+    }
+  }
+}

@@ -1,0 +1,67 @@
+.form {
+
+  .form-item {
+    margin: 10px 0;
+
+    .form-radio.error, .form-checkbox.error {
+      @include box-shadow(0 0 3px 1px #ff0000 !important);
+    }
+  }
+
+  .form-wrapper {
+    border: none;
+    padding: 0;
+    margin: 0;
+
+    label {
+      font-family: $museo-700;
+      margin-bottom: 10px;
+    }
+
+    .webform-component-textfield, .webform-component-email {
+      display: inline-block;
+
+      &:first-child {
+        margin-left: 0;
+      }
+    }
+
+    .form-text {
+      padding: 6px 10px;
+      border: 1px solid #adadad;
+      width: 100%;
+      background: #eaeaea;
+    }
+
+    .form-file {
+      font-family: $museo-700;
+    }
+  }
+
+  .captcha {
+    padding: 25px 0 0 0;
+
+    .funnel-reload-captcha {
+      margin-bottom: 15px;
+      display: inline-block;
+    }
+
+    img {
+      display: inline-block;
+      vertical-align: top;
+    }
+
+    .form-item-captcha-response {
+      display: inline-block;
+      margin: 0 0 0 10px;
+    }
+
+    .form-text {
+      width: 105px;
+      margin-bottom: 10px;
+      padding: 6px 10px;
+      border: 1px solid #adadad;
+      background: #eaeaea;
+    }
+  }
+}

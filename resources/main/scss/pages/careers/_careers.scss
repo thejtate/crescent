@@ -1,0 +1,129 @@
+.page-careers {
+
+  .block-system {
+
+    .title {
+
+      &:before {
+        bottom: -198px;
+      }
+
+      &:after {
+        bottom: -198px;
+      }
+    }
+
+    h5 {
+      border-bottom: 1px solid #c0c0c0;
+      font-family: $museoslab-100;
+      text-align: center;
+      color: #353535;
+      text-transform: uppercase;
+    }
+
+    .text-inner {
+      text-align: center;
+      margin: 40px auto 40px auto;
+    }
+
+    .careers-list {
+      margin: 0;
+      padding: 0 0 0 50px;
+
+      li {
+        list-style: none;
+        position: relative;
+        margin-bottom: 20px;
+
+        &:before {
+          @include pseudo-block($top: 0, $left: -35px);
+          @include oneline-sprite-box($icons, foreman-in-icons);
+        }
+      }
+    }
+
+    .quicktabs-wrapper {
+
+      .quicktabs-tabs {
+
+        a {
+          position: relative;
+        }
+
+        .quicktabs-tabs-item-1 {
+
+          a {
+
+            &:after {
+
+              @include oneline-sprite-box($icons, careers-tab-1);
+              margin-left: -33px;
+            }
+          }
+
+        }
+
+        .quicktabs-tabs-item-2 {
+
+          a {
+
+            &:after {
+
+              @include oneline-sprite-box($icons, careers-tab-2);
+              margin-left: -33px;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .form-item {
+    margin: 10px 0;
+  }
+
+  .form-wrapper {
+    border: none;
+    padding: 0;
+    margin: 0;
+
+    label {
+      font-family: $museo-700;
+      margin-bottom: 10px;
+    }
+
+    .webform-component-textfield, .webform-component-email, .webform-component-select, .webform-component-number {
+      display: inline-block;
+    }
+
+    .form-select {
+      width: 100%;
+      background: #EAEAEA;
+      padding: 5px;
+    }
+  }
+
+  .captcha {
+    padding: 25px 0 0 0;
+
+    .funnel-reload-captcha {
+      margin-bottom: 15px;
+      display: inline-block;
+    }
+
+    img {
+      display: inline-block;
+      vertical-align: top;
+    }
+
+    .form-item-captcha-response {
+      display: inline-block;
+      margin: 0 0 0 10px;
+    }
+
+    .form-text {
+      width: 105px;
+      margin-bottom: 10px;
+    }
+  }
+}

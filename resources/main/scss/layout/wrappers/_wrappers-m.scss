@@ -1,0 +1,61 @@
+.outer-wrapper {
+  overflow: hidden;
+  padding-bottom: 90px;
+
+  .front & {
+
+    h2 {
+      text-align: center;
+      font-size: 64px;
+      margin-bottom: 40px;
+    }
+  }
+
+  .top-media {
+    background: #fff;
+    //background: #7EB8D9; - BLUE
+    position: relative;
+    z-index: 10;
+    max-height: 812px;
+
+    .video {
+      height: 812px;
+      overflow: hidden;
+      position: relative;
+
+      video {
+        display: block;
+        min-width: 100%;
+
+        source {
+          background: #7EB8D9;
+        }
+      }
+    }
+
+    img {
+      min-width: 1147px;
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+  }
+}
+
+.content-wrapper {
+
+  .front & {
+    padding: 55px 0 0 0;
+  }
+
+}
+
+.inner-wrapper {
+
+  .front & {
+    min-height: 870px;
+  }
+}

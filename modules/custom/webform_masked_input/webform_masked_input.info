@@ -1,0 +1,7 @@
+name = Webform masked input
+description = Module allow add masked input to the textfields.
+core = 7.x
+package = Webform
+
+dependencies[] = masked_input
+dependencies[] = webform

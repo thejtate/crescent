@@ -1,0 +1,68 @@
+.page-healthsafety {
+
+  .text-inner {
+    padding: 0 15px;
+    margin: 0;
+  }
+
+  .b-tabs-wrapper {
+    padding: 0 15px;
+  }
+
+  #quicktabs-health_safety .title-nav {
+    padding: 20px 0;
+  }
+
+  .items {
+
+    .item {
+      margin-bottom: 50px;
+      display: table;
+      padding: 0 15px;
+
+      .img {
+        display: block;
+        text-align: center;
+        width: 100px;
+        margin: 0 auto;
+
+        img {
+          width: 80%;
+          height: auto;
+        }
+      }
+
+      .text {
+        display: block;
+
+        a {
+          color: #7d7d7d;
+          text-decoration: none;
+
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+      }
+    }
+  }
+
+  .top-img {
+    padding: 20px 0 0 0;
+  }
+
+  .with-arrow {
+
+    li {
+      margin-bottom: 15px;
+
+      &:before {
+        @include pseudo-block($top: 0, $left: -35px);
+        border-top: 12px solid transparent;
+        border-left: 20px solid #ffac03;
+        border-bottom: 12px solid transparent;
+
+      }
+    }
+  }
+}

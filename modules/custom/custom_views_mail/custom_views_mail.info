@@ -1,0 +1,9 @@
+name = custom_views_mail
+description = Email view results of webform submissions with views bulk operations.
+package = custom
+core = 7.x
+version = 7.x-1.x
+
+files[] = views/custom_views_mail_webform_handler_filter_submission_data_empty.inc
+files[] = views/custom_views_mail_webform_handler_filter_numeric_data.inc
+;dependencies[] =

@@ -1,0 +1,45 @@
+.b-links {
+  margin-bottom: 50px;
+
+  & > ul {
+    margin: 0;
+    padding: 0;
+
+    li {
+      border-bottom: 2px solid #a7a7a7;
+      list-style: none;
+      font-size: 24px;
+      position: relative;
+      font-family: $museo-300;
+      @include background-image(linear-gradient(#fff 0%, #dddddd 100%));
+
+      &:first-child {
+        border-top: 2px solid #a7a7a7;
+      }
+
+      a {
+        min-height: 186px;
+        @include clearfix();
+        padding: 25px 180px 25px 100px;
+        display: block;
+        color: #7d7d7d;
+        @include transition(color .3s);
+        text-decoration: none;
+
+        &:before {
+          @include pseudo-block($right: 70px, $top: 50%);
+
+        }
+      }
+
+      p {
+        margin: 0;
+      }
+
+      .logo {
+        display: block;
+      }
+    }
+  }
+
+}

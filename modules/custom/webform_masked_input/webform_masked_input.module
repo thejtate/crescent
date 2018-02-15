@@ -1,0 +1,80 @@
+<?php
+/**
+ * @file Module main functionality.
+ */
+
+/**
+ * Implements hook_webform_component_info().
+ */
+function webform_masked_input_webform_component_info() {
+  $items['masked_textfield'] = array(
+    'label' => t('Masked Textfield'),
+    'description' => t(' Masked input Textfield type.'),
+    'file' => 'masked_textfield.inc',
+    'features' => array(
+      'email_name' => TRUE,
+      'spam_analysis' => TRUE,
+    )
+  );
+  return $items;
+}
+
+/**
+ * Create placeholder string from mask string.
+ *
+ * @param string $mask
+ * @param string $mask_placeholder
+ * @return string mixed
+ */
+function _webform_masked_input_get_placehoder_from_mask($mask, $mask_placeholder) {
+  $definitions = _masked_input_default_definitions();
+  $placeholder = $mask;
+  foreach ($definitions as $definition) {
+    $placeholder = str_replace($definition[0]['data'], $mask_placeholder,  $placeholder);
+  }
+  $placeholder = str_replace('?', '',  $placeholder);
+  return $placeholder;
+}
+
+/**
+ * Element value callback.
+ * Clean mask symbols from submitted value.
+ *
+ * @param $element
+ * @param bool $input
+ * @param $form_state
+ * @return string
+ */
+function webform_masked_input_clean_mask_value($element, $input = FALSE, $form_state) {
+
+  if($input !== FALSE) {
+    $mask_definitions = webform_masked_definitions();
+    $mask_symbols = array_keys($mask_definitions);
+    $mask_array = str_split($element['#mask']);
+    $input_array = str_split($input);
+    $input_cleaned = '';
+
+    foreach ($input_array as $delta => $input_char) {
+      if(isset($mask_array[$delta]) && !in_array($mask_array[$delta], $mask_symbols) && $mask_array[$delta] === $input_char) {
+        //skip mask chars
+      } else {
+        $input_cleaned .= $input_char;
+      }
+    }
+
+    return $input_cleaned;
+  }
+
+}
+
+/**
+ * Get all defined mask definitions
+ */
+function webform_masked_definitions() {
+  return
+    array(
+      '9' => "[0-9]",
+      'a' => "[A-Za-z]",
+      '*' => "[A-Za-z0-9]"
+    ) + masked_input_get_configured_definitions();
+}

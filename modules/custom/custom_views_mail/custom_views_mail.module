@@ -1,0 +1,387 @@
+<?php
+
+/**
+ * @file
+ * custom_views_mail
+ */
+
+/**
+ * Implements hook_action_inf().
+ */
+function custom_views_mail_action_info() {
+  return array(
+    'custom_views_mail_send_view_results' => array(
+      'type' => 'system',
+      'label' => t('Send via email.'),
+      'configurable' => FALSE,
+      'vbo_configurable' => TRUE,
+      'triggers' => array(),
+      'pass rows' => TRUE,
+      'aggregate' => TRUE,
+    ),
+  );
+}
+
+/**
+ * Action callback.
+ * Start batch for building export xml.
+ */
+function custom_views_mail_send_view_results(&$nodes, $context) {
+
+  module_load_include('inc', 'webform', 'includes/webform.report');
+  module_load_include('inc', 'webform', 'includes/webform.export');
+  $node = reset($nodes);
+
+  $sids = array();
+
+  foreach ($context['rows'] as $result) {
+    $sids[] = $result->webform_submissions_node_sid;
+  }
+
+  $format = 'excel';
+  $csv_components = array('info' => t('Submission information'));
+  // Prepend information fields with "-" to indent.
+//  foreach (webform_results_download_submission_information($node) as $key => $title) {
+//    $csv_components[] = $key;
+//  }
+
+  $csv_components[] = 'webform_time';
+
+  $csv_components = array_merge($csv_components, array_keys(webform_component_list($node, NULL, TRUE)));
+
+  $options = array (
+    'delimiter' => '\\t',
+    'components' => $csv_components,
+    'header_keys' => '0',
+    'select_keys' => '0',
+    'select_format' => 'separate',
+    'range' =>
+      array (
+        'range_type' => 'all',
+        'latest' => '',
+        'start' => '',
+        'end' => '',
+        'start_date' => '',
+        'end_date' => '',
+        'completion_type' => 'all',
+        'sids' => $sids,
+      ),
+    'download' => true,
+    'iso8601_time' => true,
+    'iso8601_date' => true,
+    'email' => $context['email'],
+  );
+
+  // Determine an appropriate batch size based on the form and server specs.
+  if (!isset($options['range']['batch_size'])) {
+    // Start the batch size at 50,000 per batch, but divide by number of
+    // components in the form. e.g. If a form had 10 components, it would
+    // export 5,000 submissions at a time.
+    $batch_size = ceil(50000 / max(1, count($node->webform['components'])));
+
+    // Every 32MB of additional memory after 64MB adds a multiplier in size.
+    $memory_limit = parse_size(ini_get('memory_limit'));
+    $mb = 1048576;
+    $memory_modifier = max(1, ($memory_limit - (64 * $mb)) / (32 * $mb));
+    $batch_size = ceil($batch_size * $memory_modifier);
+
+    // For time reasons, limit the batch size to 5,000.
+    $batch_size = min($batch_size, 5000);
+
+    // Allow a non-UI configuration to override the batch size.
+    $batch_size = variable_get('webform_export_batch_size', $batch_size);
+
+    $options['range']['batch_size'] = $batch_size;
+  }
+
+  $options['file_name'] = _webform_export_tempname();
+
+  // Set up a batch to export the results.
+  $batch = custom_views_mail_webform_results_export_batch($node, $format, $options);
+  batch_set($batch);
+}
+
+
+/**
+ * Batch Builder.
+ * Based on @see webform_results_export_batch
+ */
+function custom_views_mail_webform_results_export_batch($node, $format = 'delimited', $options = array()) {
+  $defaults = webform_results_download_default_options($node, $format);
+  $options += $defaults;
+  $options['range'] += $defaults['range'];
+
+  return array(
+    'operations' => array(
+      array('webform_results_batch_bof', array($node, $format, $options)),
+      array('webform_results_batch_headers', array($node, $format, $options)),
+      array('custom_views_mail_webform_results_batch_rows', array($node, $format, $options)),
+      array('webform_results_batch_eof', array($node, $format, $options)),
+      array('webform_results_batch_post_process', array($node, $format, $options)),
+      array('webform_results_batch_results', array($node, $format, $options)),
+    ),
+    'finished' => 'custom_views_mail_webform_results_batch_finished',
+    'title' => t('Exporting submissions'),
+    'init_message' => t('Creating export file'),
+    'error_message' => t('The export file could not be created because an error occurred.'),
+    'file' => drupal_get_path('module', 'webform') . '/includes/webform.report.inc',
+  );
+}
+
+/**
+ * Batch API completion callback; Display completion message and cleanup.
+ */
+function custom_views_mail_webform_results_batch_finished($success, $results, $operations) {
+  if ($success) {
+
+    $emails = explode(',', $results['email']);
+
+    foreach ($emails as $email) {
+      $params = array(
+        'key' => 'my_email_template',
+        'to' => trim($email),
+        'from' => variable_get('site_mail', ''),
+        'subject' => 'Crescent Careers form submissions export.',
+        'body' => 'Crescent Careers form submissions export. See attachment.',
+        'attachment' => array(
+          'filename'=> _webform_safe_name($results['node']->title) . '.xlsx',
+          'filemime' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'filecontent' => file_get_contents($results['file_name']),
+
+        )
+      );
+
+      drupal_mail('custom_views_mail', $params['key'], $params['to'], LANGUAGE_NONE, $params, $params['from']);
+    }
+
+    drupal_set_message(t('Email successfully sent.'));
+  }
+  else {
+    drupal_set_message(t('An error occurred while generating the export file.'));
+    if (isset($results['file_name']) && is_file($results['file_name'])) {
+      @unlink($results['file_name']);
+    }
+  }
+}
+
+/**
+ * Batch API callback; Write the rows of the export to the export file.
+ */
+function custom_views_mail_webform_results_batch_rows($node, $format = 'delimited', $options = array(), &$context) {
+  module_load_include('inc', 'webform', 'includes/webform.export');
+
+  // Initialize the sandbox if this is the first execution of the batch
+  // operation.
+  if (!isset($context['sandbox']['batch_number'])) {
+    $context['sandbox']['batch_number'] = 0;
+    $context['sandbox']['sid_count'] = count($node->nid, $options['range']['sids']);
+    $context['sandbox']['batch_max'] = max(1, ceil($context['sandbox']['sid_count'] / $options['range']['batch_size']));
+    $context['sandbox']['serial'] = 0;
+    $context['sandbox']['last_sid'] = 0;
+    $context['results']['email'] = $options['email'];
+  }
+
+  // Retrieve the submissions for this batch process.
+  $options['range']['batch_number'] = $context['sandbox']['batch_number'];
+
+  $query = custom_views_mail_webform_download_sids_query($node->nid, $options['range']);
+
+  // Join to the users table to include user name in results, as required by
+  // webform_results_download_rows_process.
+  $query->leftJoin('users', 'u', 'u.uid = ws.uid');
+  $query->fields('u', array('name'));
+  $query->fields('ws');
+
+  $submissions = webform_get_submissions_load($query);
+
+
+
+  $rows = webform_results_download_rows_process($node, $options, $context['sandbox']['serial'], $submissions);
+
+  // Write these submissions to the file.
+  $exporter = webform_export_create_handler($format, $options);
+  $handle = fopen($options['file_name'], 'a');
+  if (!$handle) {
+    return;
+  }
+  foreach ($rows as $row) {
+    $exporter->add_row($handle, $row, $context['results']['row_count']);
+    $context['results']['row_count']++;
+  }
+
+  $context['sandbox']['serial'] += count($submissions);
+  $context['sandbox']['last_sid'] = end($submissions) ? key($submissions) : NULL;
+  $context['sandbox']['batch_number']++;
+
+  @fclose($handle);
+
+  // Display status message
+  $context['message'] = t('Exported @count of @total submissions...', array('@count' => $context['sandbox']['serial'], '@total' => $context['sandbox']['sid_count']));
+  $context['finished'] = $context['sandbox']['batch_number'] < $context['sandbox']['batch_max']
+    ? $context['sandbox']['batch_number'] / $context['sandbox']['batch_max']
+    : 1.0;
+  $context['results']['last_sid'] = $context['sandbox']['last_sid'];
+}
+
+
+function custom_views_mail_webform_download_sids_query($nid, $range_options, $uid = NULL) {
+  $query = db_select('webform_submissions', 'ws')
+    ->condition('nid', $nid)
+    ->condition('ws.sid', $range_options['sids'], 'IN')
+    ->addTag('webform_download_sids');
+
+  $query->orderBy('ws.sid', 'ASC');
+
+
+  // Filter down to draft or finished submissions.
+  if (!empty($range_options['completion_type']) && $range_options['completion_type'] !== 'all') {
+    $query->condition('is_draft', (int) ($range_options['completion_type'] === 'draft'));
+  }
+
+  if (isset($range_options['batch_number']) && !empty($range_options['batch_size'])) {
+    $query->range($range_options['batch_number'] * $range_options['batch_size'], $range_options['batch_size']);
+  }
+  return $query;
+}
+
+/**
+ * Implements hook_mail().
+ */
+function custom_views_mail_mail($key, &$message, $params) {
+
+  $message['subject'] = $params['subject'];
+  $message['body'][] = $params['body'];
+
+  // Add attachment when available.
+  if (isset($params['attachment'])) {
+    $message['params']['attachments'][] = $params['attachment'];
+  }
+}
+
+/**
+ * Action settings form callback.
+ */
+function custom_views_mail_send_view_results_form($settings, &$form_state) {
+
+  $form = array();
+  $form['email'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Enter Email address.'),
+    '#required' => TRUE,
+    '#element_validate' => array('custom_views_mail_email_validate'),
+    '#default_value' => isset($settings['settings']['hero']) ? $settings['settings']['hero'] : '',
+    '#description' => t('Multiple e-mail addresses may be separated by commas.'),
+    '#maxlength' => 255,
+  );
+
+  return $form;
+}
+
+/**
+ * Action settings submit callback.
+ */
+function custom_views_mail_send_view_results_submit($form, $form_state) {
+
+  $return = array();
+  $return['email'] = $form_state['values']['email'];
+  return $return; //Note, return value here must be an array.
+}
+
+/**
+ * Form element validation. Validate Email address.
+ */
+function custom_views_mail_email_validate($element, &$form_state, $form) {
+  $values = explode(',', $element['#value']);
+  foreach ($values as $value) {
+    if (!valid_email_address(trim($value))) {
+      form_error($element, t('Please enter a valid email address.'));
+      break;
+    }
+  }
+
+}
+
+/**
+ * Implements hook_webform_csv_data_alter().
+ */
+function custom_views_mail_webform_csv_data_alter(&$data, $component, $submission) {
+
+  if($component['type'] == 'file') {
+
+    //unset row with file size.
+    if(isset($data[1])) {
+      unset($data[1]);
+    }
+  }
+}
+
+/**
+ * Implements hook_webform_results_download_submission_information_data().
+ */
+function custom_views_mail_webform_results_download_submission_information_data($token, $submission, array $options, $serial_start, $row_count) {
+//  $executed = &drupal_static(__FUNCTION__);
+//  if(empty($executed)) {
+//    dsm($submission);
+//    dsm($options);
+//    $executed = TRUE;
+//  }
+
+}
+
+/**
+ * Implements hook_webform_csv_header_alter().
+ */
+function custom_views_mail_webform_csv_header_alter(&$header, $component) {
+
+  if($component['type'] == 'file') {
+
+    //unset Filesize header
+    if(isset($header[2][1])) {
+      unset($header[2][1]);
+    }
+  }
+}
+
+/**
+ * Implements hook_views_data_alter().
+ */
+function custom_views_mail_views_data_alter(&$data) {
+
+  if (isset($data['webform_submitted_data']['data'])) {
+
+    $data['webform_submitted_data']['data_check_empty'] = array(
+      'table' => 'webform_submitted_data',
+      'title' => t('Data field, select filter empty / not empty'),
+      'help' => t('Custom version of webform data filter. Provide custom filter'),
+      'real field' => 'data',
+      'filter' => array(
+        'handler' => 'custom_views_mail_webform_handler_filter_submission_data_empty',
+      ),
+    );
+  }
+
+  if (isset($data['webform_submitted_data']['data_numeric'])) {
+
+    $data['webform_submitted_data']['data_numeric_not_empty'] = array(
+      'table' => 'webform_submitted_data',
+      'title' => t('Data field (numeric). Customized, NOT EMPTY  ($field <> "")'),
+      'help' => t('The numeric value of a component as submitted by a user.'),
+      'real field' => 'data',
+      'filter' => array(
+        'handler' => 'custom_views_mail_webform_handler_filter_numeric_data',
+      ),
+    );
+  }
+
+}
+
+
+/**
+ * Implements hook_views_api().
+ */
+function custom_views_mail_views_api() {
+  return array(
+    'api' => 3.0,
+    'path' => drupal_get_path('module', 'custom_views_mail') . '/views',
+  );
+}

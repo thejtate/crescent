@@ -1,0 +1,148 @@
+<?php
+
+/**
+ * @file
+ * Crescent base functionality
+ */
+
+module_load_include("inc", "crescent_base", "includes/crescent_base.blocks");
+
+
+
+/**
+ * Implements hook_theme().
+ */
+function crescent_base_theme() {
+  $module_path = drupal_get_path('module', 'crescent_base');
+  $base = array(
+    'path' => $module_path . "/templates",
+  );
+
+  return array(
+    'crescent_base_enviro_edge_block' => $base + array(
+      'variables' => array(
+        'block' => NULL,
+      ),
+      'template' => 'blocks/crescent_base_enviro_edge_block',
+    ),
+  );
+}
+
+/**
+ * Implements hook_webform_component_render_alter().
+ */
+function crescent_base_webform_component_render_alter(&$element, &$component) {
+
+
+  switch($component['type']) {
+    case 'number':
+      if (!empty($component['extra']['max'])
+        && !empty($component['extra']['step'])
+        //is integer(not float). no digits after dot
+        && ctype_digit(strval($component['extra']['step']))
+      ) {
+
+        //set number fields maxlenght based on max value
+        $element['#attributes']['maxlength'] = strlen($component['extra']['max']);
+      }
+      break;
+    case 'file':
+      $element['#attributes']['class'][] = 'custom-file-wrap';
+      break;
+  }
+
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function crescent_base_form_alter(&$form, &$form_state, $form_id) {
+
+  switch($form_id) {
+    case 'views_exposed_form':
+
+      if ($form_state['view']->name === 'careers_results_search'
+        || $form_state['view']->name === 'careers_drivers_results_search'
+      ) {
+
+        $hide_fields = array(
+          'start_salary2_between',
+          'start_salary3_between',
+          'end_salary2_between',
+          'end_salary3_between',
+        );
+
+        //Hide filters. They will have values copied from other field.
+        foreach ($hide_fields as $field_key) {
+          if(!empty($form[$field_key])) {
+            $form[$field_key]['#access'] = FALSE;
+          }
+        }
+
+        $form['employed'] = array(
+          '#type' => 'select',
+          '#required' => FALSE,
+          '#empty_option' => t('- Any -'),
+          '#options' => array('yes' => 'Yes', 'no' => 'No'),
+        );
+
+        $form['was_employed'] = array(
+          '#type' => 'select',
+          '#required' => FALSE,
+          '#empty_option' => t('- Any -'),
+          '#options' => array('yes' => 'Yes', 'no' => 'No'),
+        );
+
+        $form['able_to_travel'] = array(
+          '#type' => 'select',
+          '#required' => FALSE,
+          '#empty_option' => t('- Any -'),
+          '#options' => array('yes' => 'Yes', 'no' => 'No'),
+        );
+
+        module_load_include('inc', 'webform', 'includes/webform.options');
+        $form['state'] = array(
+          '#type' => 'select',
+          '#required' => FALSE,
+          '#empty_option' => t('- Any -'),
+          '#options' => webform_options_united_states(NULL, NULL, NULL),
+        );
+
+        $form['date_available']['#type'] = 'date_popup';
+        $form['date_available']['#date_format'] = 'Y-m';
+        $form['date_available']['#description'] = '';
+        $form['date_available']['#date_label_position'] = '';
+
+        $form['#attached']['css'][] = drupal_get_path('module', 'crescent_base') . '/css/crescent-exposed-filters.css';
+        $form['#submit'] = array('crescent_base_careers_custom_views_exposed_form_submit');
+      }
+      break;
+  }
+}
+
+/**
+ * Custom views exposed filter submit.
+ */
+function crescent_base_careers_custom_views_exposed_form_submit(&$form, &$form_state) {
+
+
+  if(!empty($form_state['input']['start_salary1_between'])) {
+    $form_state['values']['start_salary2_between'] = $form_state['values']['start_salary1_between'];
+    $form_state['values']['start_salary3_between'] = $form_state['values']['start_salary1_between'];
+  }
+
+  if(!empty($form_state['input']['end_salary1_between'])) {
+    $form_state['values']['end_salary2_between'] = $form_state['values']['end_salary1_between'];
+    $form_state['values']['end_salary3_between'] = $form_state['values']['end_salary1_between'];
+  }
+
+  if(!empty($form_state['input']['date_available']['date'])) {
+    //add 32 in days position to show all dates for selected month
+    $form_state['values']['date_available'] = $form_state['input']['date_available']['date'] . '-32';
+
+  }
+
+
+  views_exposed_form_submit($form, $form_state);
+}
+

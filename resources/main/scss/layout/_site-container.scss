@@ -1,0 +1,6 @@
+.site-container {
+  width: $width;
+  margin: 0 auto;
+  @include clearfix();
+  position: relative;
+}

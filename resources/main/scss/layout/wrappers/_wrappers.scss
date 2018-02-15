@@ -1,0 +1,90 @@
+.outer-wrapper {
+  overflow: hidden;
+  padding-bottom: 90px;
+
+  .front & {
+
+    h2 {
+      margin-bottom: 40px;
+    }
+  }
+
+  .region-top-media {
+    overflow: hidden;
+  }
+
+  .top-media {
+    background: #fff;
+    position: relative;
+    z-index: 10;
+
+    .video {
+      overflow: hidden;
+      position: relative;
+      max-width: 1345px;
+      margin: 0 auto;
+
+      video {
+        display: block;
+        min-width: 100%;
+        width: auto;
+        height: auto;
+
+        source {
+          background: #7EB8D9;
+        }
+      }
+    }
+
+    img {
+      min-width: 1147px;
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+  }
+}
+
+.content-wrapper {
+
+  .front & {
+    padding: 55px 0 0 0;
+  }
+
+  .form-item .error {
+    border: 2px solid red !important;
+  }
+
+  .webform-progressbar {
+    width: 40%;
+
+    .webform-progressbar-page {
+      border: 1px solid #21608f;
+      width: 15px;
+      height: 15px;
+      @include border-radius(50%);
+      margin: -9px -4px;
+    }
+
+    .webform-progressbar-inner {
+      background-color: #21608f;
+    }
+
+    .completed {
+      background-color: #21608f;
+    }
+
+    .current {
+      background: #21608f;
+    }
+
+    .webform-progressbar-outer {
+      height: 4px;
+      border: 1px solid #21608f;
+    }
+  }
+
+}
